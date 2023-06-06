@@ -100,7 +100,6 @@ public class RomeArabicConverter {
         Set<String> expectations = new HashSet<>();
         String ordered = iterator.next();
         for (int i = romans.length - 1; i >= 0; i--) {
-            System.out.println(ordered);
             String real = romans[i];
             if (col.containsKey(ordered) && col.get(ordered) > 1 || getFirstDigit(Num.get(ordered)) == 5) {
                 expectations.add(ordered);
@@ -110,7 +109,6 @@ public class RomeArabicConverter {
                     expectations.addAll(col.keySet().stream().filter(n -> Num.get(n) >= Num.get(t)).toList());
                 }
             }
-            System.out.println(expectations);
             if (expectations.contains(real)) {
                 col.computeIfPresent(real, (k, v) -> v - 1);
             } else {
