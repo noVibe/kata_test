@@ -27,6 +27,15 @@ public class RomeArabicConverter {
             put("L", 50);
             put("D", 500);
         }};
+        private  static  final Map<String, Integer> maxOccurrences = new HashMap<>() {{
+            put("I", 3);
+            put("X", 4);
+            put("C", 4);
+            put("M", 4);
+            put("V", 1);
+            put("L", 1);
+            put("D", 1);
+        }};
 
         private static int get(String s) {
             return romToAr.get(s);
@@ -34,6 +43,9 @@ public class RomeArabicConverter {
 
         private static String get(Integer s) {
             return arToRom.get(s);
+        }
+        private static int maxOccurrences(String s) {
+            return maxOccurrences.get(s);
         }
     }
 
@@ -47,11 +59,8 @@ public class RomeArabicConverter {
 
     private static String arabicToRome(int number) {
         StringBuilder result = new StringBuilder();
-        String current;
         for (int i = 1, digit = number % 10; number > 0; i *= 10, number /= 10, digit = number % 10) {
-            if (digit == 0) {
-                continue;
-            }
+            String current;
             if (digit < 4) {
                 current = Num.get(i).repeat(digit);
             } else if (digit == 4 || digit == 9) {
@@ -81,45 +90,36 @@ public class RomeArabicConverter {
     }
 
     public static String validateRoman(String s) {
-        Map<String, Integer> max = new HashMap<>() {{
-            put("I", 3);
-            put("X", 4);
-            put("C", 4);
-            put("M", 4);
-            put("V", 1);
-            put("L", 1);
-            put("D", 1);
-        }};
-        String[] romans = s.split("");
-        Map<String, Long> col = Arrays.stream(romans)
+        String[] input = s.split("");
+        Map<String, Long> romans = Arrays.stream(input)
                 .collect(Collectors.groupingBy(n -> n, () -> new TreeMap<>(Comparator.comparingInt(Num::get)), Collectors.counting()));
-        col.forEach((key, value) -> {
-            if (max.get(key) < value) throw new InvalidRomanNumberException();
+        romans.forEach((num, occurrences) -> {
+            if (Num.maxOccurrences(num) < occurrences) throw new InvalidRomanNumberException();
         });
-        Iterator<String> iterator = new LinkedHashSet<>(col.keySet()).iterator();
+        Iterator<String> iterator = new LinkedHashSet<>(romans.keySet()).iterator();
         Set<String> expectations = new HashSet<>();
         String ordered = iterator.next();
-        for (int i = romans.length - 1; i >= 0; i--) {
-            String real = romans[i];
-            if (col.containsKey(ordered) && col.get(ordered) > 1 || getFirstDigit(Num.get(ordered)) == 5) {
+        for (int i = input.length - 1; i >= 0; i--) {
+            String real = input[i];
+            if (romans.containsKey(ordered) && romans.get(ordered) > 1 || getFirstDigit(Num.get(ordered)) == 5) {
                 expectations.add(ordered);
             } else {
                 String t = ordered;
                 if (expectations.isEmpty()) {
-                    expectations.addAll(col.keySet().stream().filter(n -> Num.get(n) >= Num.get(t)).toList());
+                    expectations.addAll(romans.keySet().stream().filter(n -> Num.get(n) >= Num.get(t)).toList());
                 }
             }
             if (expectations.contains(real)) {
-                col.computeIfPresent(real, (k, v) -> v - 1);
+                romans.computeIfPresent(real, (k, v) -> v - 1);
             } else {
                 throw new InvalidRomanNumberException();
             }
-            if (!ordered.equals(real) && col.get(real) == 0) {
-                col.remove(real);
+            if (!ordered.equals(real) && romans.get(real) == 0) {
+                romans.remove(real);
                 expectations.clear();
             }
-            if (col.get(ordered) == 0) {
-                col.remove(ordered);
+            if (romans.get(ordered) == 0) {
+                romans.remove(ordered);
                 if (iterator.hasNext()) {
                     ordered = iterator.next();
                 }
