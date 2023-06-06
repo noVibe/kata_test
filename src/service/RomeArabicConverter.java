@@ -4,7 +4,7 @@ package service;
 import exception.InvalidRomanNumberException;
 
 import java.util.*;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 
 public class RomeArabicConverter {
@@ -28,16 +28,12 @@ public class RomeArabicConverter {
             put("D", 500);
         }};
 
-        private static int getRoman(String s) {
+        private static int get(String s) {
             return romToAr.get(s);
         }
 
-        private static String getRoman(Integer s) {
+        private static String get(Integer s) {
             return arToRom.get(s);
-        }
-
-        private static Stream<String> getRomanStream() {
-            return romToAr.keySet().stream();
         }
     }
 
@@ -57,11 +53,11 @@ public class RomeArabicConverter {
                 continue;
             }
             if (digit < 4) {
-                current = Num.getRoman(i).repeat(digit);
+                current = Num.get(i).repeat(digit);
             } else if (digit == 4 || digit == 9) {
-                current = Num.getRoman(i) + Num.getRoman(i * (1 + digit));
+                current = Num.get(i) + Num.get(i * (1 + digit));
             } else {
-                current = Num.getRoman(i * 5) + Num.getRoman(i).repeat(digit - 5);
+                current = Num.get(i * 5) + Num.get(i).repeat(digit - 5);
             }
             result.insert(0, current);
         }
@@ -70,7 +66,7 @@ public class RomeArabicConverter {
 
 
     private static int romeToArabic(String str) {
-        int[] numbers = Arrays.stream(str.split("")).mapToInt(Num::getRoman).toArray();
+        int[] numbers = Arrays.stream(str.split("")).mapToInt(Num::get).toArray();
         int temp = numbers[0];
         int result = temp;
         for (int i = 1, current; i < numbers.length; i++) {
@@ -84,8 +80,8 @@ public class RomeArabicConverter {
         return result;
     }
 
-    public static String validateRoman(String num) {
-        Map<String, Integer> available = new HashMap<>() {{
+    public static String validateRoman(String s) {
+        Map<String, Integer> max = new HashMap<>() {{
             put("I", 3);
             put("X", 4);
             put("C", 4);
@@ -94,75 +90,49 @@ public class RomeArabicConverter {
             put("L", 1);
             put("D", 1);
         }};
-        Map<String, Integer> max = new HashMap<>(available);
-
-        String[] bits = num.split("");
-        for (String currentRoman : bits) {
-            int currentArabic = Num.getRoman(currentRoman);
-            int coefficient = getCoefficient(currentArabic);
-            int nextArabic = currentArabic * coefficient;
-            int prevArabic = getPrevArabic(nextArabic);
-            int prevArabicDivOn10 = getPrevArabicDivisibleOn10Else0(prevArabic, coefficient);
-            int nextArabicDivOn10 = getNextArabicDivisibleOn10(currentArabic, coefficient);
-            String prevRoman = Num.getRoman(prevArabic);
-            String prevRomanDiv10 = Num.getRoman(prevArabicDivOn10);
-            String nextRomanDiv10 = Num.getRoman(nextArabicDivOn10);
-
-            if (available.containsKey(currentRoman) && coefficient == 2
-                    && available.get(prevRoman) > max.get(prevRoman) - 2) {
-                available.remove(currentRoman);
-                if (!Objects.equals(available.get(prevRoman), max.get(prevRoman))) {
-                    available.remove(prevRoman);
+        String[] romans = s.split("");
+        Map<String, Long> col = Arrays.stream(romans)
+                .collect(Collectors.groupingBy(n -> n, () -> new TreeMap<>(Comparator.comparingInt(Num::get)), Collectors.counting()));
+        col.forEach((key, value) -> {
+            if (max.get(key) < value) throw new InvalidRomanNumberException();
+        });
+        Iterator<String> iterator = new LinkedHashSet<>(col.keySet()).iterator();
+        Set<String> expectations = new HashSet<>();
+        String ordered = iterator.next();
+        for (int i = romans.length - 1; i >= 0; i--) {
+            System.out.println(ordered);
+            String real = romans[i];
+            if (col.containsKey(ordered) && col.get(ordered) > 1 || getFirstDigit(Num.get(ordered)) == 5) {
+                expectations.add(ordered);
+            } else {
+                String t = ordered;
+                if (expectations.isEmpty()) {
+                    expectations.addAll(col.keySet().stream().filter(n -> Num.get(n) >= Num.get(t)).toList());
                 }
-                updateAvailable(currentArabic, available);
-            } else if (available.get(currentRoman) > 0 && coefficient != 2) {
-                available.put(currentRoman, available.get(currentRoman) - 1);
-                if ((prevArabicDivOn10 != 0 && !Objects.equals(max.get(prevRomanDiv10), available.get(prevRomanDiv10)))) {
-                    available.remove(prevRomanDiv10);
-                }
-                if (available.containsKey(nextRomanDiv10)) {
-                    if (max.get(currentRoman) - available.get(currentRoman) > 1) {
-                        available.remove(nextRomanDiv10);
-                    } else {
-                        available.put(nextRomanDiv10, 1);
-                    }
-                }
-                updateAvailable(nextArabicDivOn10, available);
+            }
+            System.out.println(expectations);
+            if (expectations.contains(real)) {
+                col.computeIfPresent(real, (k, v) -> v - 1);
             } else {
                 throw new InvalidRomanNumberException();
             }
-
+            if (!ordered.equals(real) && col.get(real) == 0) {
+                col.remove(real);
+                expectations.clear();
+            }
+            if (col.get(ordered) == 0) {
+                col.remove(ordered);
+                if (iterator.hasNext()) {
+                    ordered = iterator.next();
+                }
+                expectations.clear();
+            }
         }
-        return num;
-    }
-
-    private static int getCoefficient(int n) {
-        return getFirstDigit(n) != 5 ? 5 : 2;
+        return s;
     }
 
     private static int getFirstDigit(int n) {
         return (int) (n / Math.pow(10, (int) Math.log10(n)));
-    }
-
-    private static int getPrevArabicDivisibleOn10Else0(int prevArabic, int coefficient) {
-        return coefficient == 2 ? prevArabic : prevArabic / coefficient;
-    }
-
-    private static int getNextArabicDivisibleOn10(int currentArabic, int coefficient) {
-        return coefficient == 5 ? currentArabic * 10 : currentArabic * coefficient;
-    }
-
-    private static void updateAvailable(int arabic, Map<String, Integer> available) {
-        Num.getRomanStream()
-                .filter(n -> !available.containsKey(n) || arabic < Num.getRoman(n) || available.get(n) == 0)
-                .forEach(available::remove);
-
-    }
-
-    private static int getPrevArabic(int nextArabic) {
-        int temp = nextArabic / 10;
-        return temp == 0 ? 1 : temp;
-
     }
 }
 

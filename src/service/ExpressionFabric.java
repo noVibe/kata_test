@@ -38,10 +38,9 @@ public class ExpressionFabric {
         if (input.matches("^\\d+\\s[+\\-/*]\\s\\d+$")) {
             return NumberFormat.ARABIC;
         }
-        if (input.matches("^[A-Z]+\\s[+\\-/*]\\s[A-Z]+$"))
+        if (input.matches("^[IXCMVLD]+\\s[+\\-/*]\\s[IXCMVLD]+$"))
             return NumberFormat.ROMAN;
         else throw new InvalidInputException();
     }
 }
 
-// ^(((X?C?)|(X?LX{0,3}))?((I?[VX])|(V?I{1,3}))?)$ - check roman from 0 to 110
