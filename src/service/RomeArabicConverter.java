@@ -85,18 +85,7 @@ public class RomeArabicConverter {
 
 
     private static int romeToArabic(String str) {
-        int[] numbers = Arrays.stream(str.split("")).mapToInt(Num::get).toArray();
-        int temp = numbers[0];
-        int result = temp;
-        for (int i = 1, current; i < numbers.length; i++) {
-            current = numbers[i];
-            if (temp < current) {
-                current -= temp * 2;
-                temp = current;
-            }
-            result += current;
-        }
-        return result;
+        return Arrays.stream(str.split("")).map(Num::get).reduce((x, y) -> x >= y ? x + y : y - x).orElseThrow();
     }
 
     public static String validateRoman(String s) {
