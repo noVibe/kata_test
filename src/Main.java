@@ -1,3 +1,4 @@
+import exception.InvalidRomanNumberException;
 import service.CalcService;
 
 import java.io.BufferedReader;
@@ -13,7 +14,11 @@ public class Main {
                 if (input.matches("stop")) {
                     break;
                 }
-                CalcService.calculate(input);
+                try {
+                    CalcService.calculate(input);
+                } catch (InvalidRomanNumberException e) {
+                    System.err.println(e.getMessage());
+                }
             }
 
         } catch (IOException e) {

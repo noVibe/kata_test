@@ -4,6 +4,7 @@ package service;
 import exception.InvalidRomanNumberException;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 
@@ -27,7 +28,7 @@ public class RomeArabicConverter {
             put("L", 50);
             put("D", 500);
         }};
-        private  static  final Map<String, Integer> maxOccurrences = new HashMap<>() {{
+        private static final Map<String, Integer> maxOccurrences = new HashMap<>() {{
             put("I", 3);
             put("X", 4);
             put("C", 4);
@@ -44,6 +45,7 @@ public class RomeArabicConverter {
         private static String get(Integer s) {
             return arToRom.get(s);
         }
+
         private static int maxOccurrences(String s) {
             return maxOccurrences.get(s);
         }
@@ -91,28 +93,43 @@ public class RomeArabicConverter {
 
     public static String validateRoman(String s) {
         String[] input = s.split("");
+        AtomicInteger count = new AtomicInteger();
+        AtomicInteger index = new AtomicInteger();
         Map<String, Long> romans = Arrays.stream(input)
-                .collect(Collectors.groupingBy(n -> n, () -> new TreeMap<>(Comparator.comparingInt(Num::get)), Collectors.counting()));
+                .collect(Collectors.groupingBy(n -> {
+                    if (n.equals(input[index.get()])) {
+                        if (count.incrementAndGet() > 3) {
+                            throw new InvalidRomanNumberException(String.format(
+                                    "Digit '%s' is used more than 3 times in a row.", n));
+                        }
+                    } else {
+                        index.incrementAndGet();
+                        count.set(0);
+                    }
+                    return n;
+                }, () -> new TreeMap<>(Comparator.comparingInt(Num::get)), Collectors.counting()));
         romans.forEach((num, occurrences) -> {
-            if (Num.maxOccurrences(num) < occurrences) throw new InvalidRomanNumberException();
+            if (Num.maxOccurrences(num) < occurrences)
+                throw new InvalidRomanNumberException(String.format(
+                        "Digit '%s' is used %d times. Max possible: %d. ", num, occurrences, Num.maxOccurrences(num)));
         });
         Iterator<String> iterator = new LinkedHashSet<>(romans.keySet()).iterator();
         Set<String> expectations = new HashSet<>();
         String ordered = iterator.next();
         for (int i = input.length - 1; i >= 0; i--) {
             String real = input[i];
-            if (romans.containsKey(ordered) && romans.get(ordered) > 1 || getFirstDigit(Num.get(ordered)) == 5) {
+            if (romans.containsKey(ordered) && romans.get(ordered) > 1 || Num.maxOccurrences(ordered) == 1) {
                 expectations.add(ordered);
             } else {
-                String t = ordered;
                 if (expectations.isEmpty()) {
-                    expectations.addAll(romans.keySet().stream().filter(n -> Num.get(n) >= Num.get(t)).toList());
+                    expectations.addAll(romans.keySet().stream()
+                            .filter(n -> Num.get(n) >= Math.ceil((double) Num.get(real) / 10)).toList());
                 }
             }
             if (expectations.contains(real)) {
                 romans.computeIfPresent(real, (k, v) -> v - 1);
             } else {
-                throw new InvalidRomanNumberException();
+                throw new InvalidRomanNumberException("Number contains illegal order of digits.");
             }
             if (!ordered.equals(real) && romans.get(real) == 0) {
                 romans.remove(real);
@@ -128,10 +145,7 @@ public class RomeArabicConverter {
         }
         return s;
     }
-
-    private static int getFirstDigit(int n) {
-        return (int) (n / Math.pow(10, (int) Math.log10(n)));
-    }
 }
+
 
 
