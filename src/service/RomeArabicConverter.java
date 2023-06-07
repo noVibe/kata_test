@@ -93,26 +93,7 @@ public class RomeArabicConverter {
 
     public static String validateRoman(String s) {
         String[] input = s.split("");
-        AtomicInteger count = new AtomicInteger();
-        AtomicInteger index = new AtomicInteger();
-        Map<String, Long> romans = Arrays.stream(input)
-                .collect(Collectors.groupingBy(n -> {
-                    if (n.equals(input[index.get()])) {
-                        if (count.incrementAndGet() > 3) {
-                            throw new InvalidRomanNumberException(String.format(
-                                    "Digit '%s' is used more than 3 times in a row.", n));
-                        }
-                    } else {
-                        index.incrementAndGet();
-                        count.set(0);
-                    }
-                    return n;
-                }, () -> new TreeMap<>(Comparator.comparingInt(Num::get)), Collectors.counting()));
-        romans.forEach((num, occurrences) -> {
-            if (Num.maxOccurrences(num) < occurrences)
-                throw new InvalidRomanNumberException(String.format(
-                        "Digit '%s' is used %d times. Max possible: %d. ", num, occurrences, Num.maxOccurrences(num)));
-        });
+        Map<String, Long> romans = getAsTreeMapKeyRomanValOccurrences(input);
         Iterator<String> iterator = new LinkedHashSet<>(romans.keySet()).iterator();
         Set<String> expectations = new HashSet<>();
         String ordered = iterator.next();
@@ -144,6 +125,29 @@ public class RomeArabicConverter {
             }
         }
         return s;
+    }
+    private static Map<String, Long> getAsTreeMapKeyRomanValOccurrences(String[] input) {
+        AtomicInteger count = new AtomicInteger();
+        AtomicInteger index = new AtomicInteger();
+        Map<String, Long> romans = Arrays.stream(input)
+                .collect(Collectors.groupingBy(n -> {
+                    if (n.equals(input[index.get()])) {
+                        if (count.incrementAndGet() > 3) {
+                            throw new InvalidRomanNumberException(String.format(
+                                    "Digit '%s' is used more than 3 times in a row.", n));
+                        }
+                    } else {
+                        index.incrementAndGet();
+                        count.set(0);
+                    }
+                    return n;
+                }, () -> new TreeMap<>(Comparator.comparingInt(Num::get)), Collectors.counting()));
+        romans.forEach((num, occurrences) -> {
+            if (Num.maxOccurrences(num) < occurrences)
+                throw new InvalidRomanNumberException(String.format(
+                        "Digit '%s' is used %d times. Max possible: %d. ", num, occurrences, Num.maxOccurrences(num)));
+        });
+        return romans;
     }
 }
 
