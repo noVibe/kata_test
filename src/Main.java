@@ -1,6 +1,4 @@
-import exception.InvalidInputException;
-import exception.InvalidRomanNumberException;
-import exception.UnexpectedResultException;
+
 import service.CalcService;
 
 import java.io.BufferedReader;
@@ -10,21 +8,12 @@ import java.io.InputStreamReader;
 public class Main {
     public static void main(String[] args) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
-            System.out.println("Use 'stop' to stop");
-            while (true) {
-                String input = reader.readLine();
-                if (input.matches("stop")) {
-                    break;
-                }
-                try {
-                    CalcService.calculate(input);
-                } catch (InvalidRomanNumberException | UnexpectedResultException | InvalidInputException e) {
-                    System.err.println(e.getMessage());
-                }
-            }
-
+            String input = reader.readLine();
+            CalcService c = new CalcService().setRestriction(10);
+            c.calculate(input);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 }
+
