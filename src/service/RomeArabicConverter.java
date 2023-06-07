@@ -93,7 +93,7 @@ public class RomeArabicConverter {
 
     public static String validateRoman(String s) {
         String[] input = s.split("");
-        Map<String, Long> romans = getAsTreeMapKeyRomanValOccurrences(input);
+        Map<String, Long> romans = getAsTreeMapWithValidatedOccurrences(input);
         Iterator<String> iterator = new LinkedHashSet<>(romans.keySet()).iterator();
         Set<String> expectations = new HashSet<>();
         String ordered = iterator.next();
@@ -126,7 +126,7 @@ public class RomeArabicConverter {
         }
         return s;
     }
-    private static Map<String, Long> getAsTreeMapKeyRomanValOccurrences(String[] input) {
+    private static Map<String, Long> getAsTreeMapWithValidatedOccurrences(String[] input) {
         AtomicInteger count = new AtomicInteger();
         AtomicInteger index = new AtomicInteger();
         Map<String, Long> romans = Arrays.stream(input)
