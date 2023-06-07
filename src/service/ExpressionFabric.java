@@ -14,7 +14,7 @@ public class ExpressionFabric {
             case "-" -> MINUS;
             case "*" -> MULTIPLY;
             case "/" -> DIVIDE;
-            default -> throw new InvalidInputException();
+            default -> throw new InvalidInputException("Expression doesn't match the format.");
         };
     }
 
@@ -37,10 +37,11 @@ public class ExpressionFabric {
     private static NumberFormat getNumberFormatAndValidate(String input) {
         if (input.matches("^\\d+\\s[+\\-/*]\\s\\d+$")) {
             return NumberFormat.ARABIC;
-        }
-        if (input.matches("^[IXCMVLD]+\\s[+\\-/*]\\s[IXCMVLD]+$"))
+        } else if (input.matches("^[IXCMVLD]+\\s[+\\-/*]\\s[IXCMVLD]+$")) {
             return NumberFormat.ROMAN;
-        else throw new InvalidInputException();
+        } else {
+            throw new InvalidInputException("Expression doesn't match the format.");
+        }
     }
 }
 
