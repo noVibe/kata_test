@@ -2,6 +2,7 @@ package service;
 
 
 import exception.InvalidRomanNumberException;
+import exception.UnexpectedResultException;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -61,18 +62,26 @@ public class RomeArabicConverter {
 
     private static String arabicToRome(int number) {
         StringBuilder result = new StringBuilder();
-        for (int i = 1, digit = number % 10; number > 0; i *= 10, number /= 10, digit = number % 10) {
-            String current;
-            if (digit < 4) {
-                current = Num.get(i).repeat(digit);
-            } else if (digit == 4 || digit == 9) {
-                current = Num.get(i) + Num.get(i * (1 + digit));
-            } else {
-                current = Num.get(i * 5) + Num.get(i).repeat(digit - 5);
+        try {
+            for (int i = 1, digit = number % 10; number > 0; i *= 10, number /= 10, digit = number % 10) {
+                String current;
+                if (digit < 4) {
+                    current = Num.get(i).repeat(digit);
+                } else if (digit == 4 || digit == 9) {
+                    current = Num.get(i) + Num.get(i * (1 + digit));
+                } else {
+                    current = Num.get(i * 5) + Num.get(i).repeat(digit - 5);
+                }
+                result.insert(0, current);
             }
-            result.insert(0, current);
+            String out = result.toString();
+            if (out.contains("null")) {
+                throw new NullPointerException();
+            }
+            return out;
+        } catch (NullPointerException e) {
+            throw new UnexpectedResultException("Result is too big for Roman format.");
         }
-        return result.toString();
     }
 
 

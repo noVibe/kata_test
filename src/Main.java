@@ -1,4 +1,5 @@
 import exception.InvalidRomanNumberException;
+import exception.UnexpectedResultException;
 import service.CalcService;
 
 import java.io.BufferedReader;
@@ -16,7 +17,7 @@ public class Main {
                 }
                 try {
                     CalcService.calculate(input);
-                } catch (InvalidRomanNumberException e) {
+                } catch (InvalidRomanNumberException | UnexpectedResultException e) {
                     System.err.println(e.getMessage());
                 }
             }
