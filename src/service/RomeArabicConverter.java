@@ -74,11 +74,10 @@ public class RomeArabicConverter {
                 }
                 result.insert(0, current);
             }
-            String out = result.toString();
-            if (out.contains("null")) {
+            if (result.indexOf("null") != -1) {
                 throw new NullPointerException();
             }
-            return out;
+            return result.toString();
         } catch (NullPointerException e) {
             throw new UnexpectedResultException("Result is too big for Roman format.");
         }

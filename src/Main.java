@@ -1,3 +1,4 @@
+import exception.InvalidInputException;
 import exception.InvalidRomanNumberException;
 import exception.UnexpectedResultException;
 import service.CalcService;
@@ -17,7 +18,7 @@ public class Main {
                 }
                 try {
                     CalcService.calculate(input);
-                } catch (InvalidRomanNumberException | UnexpectedResultException e) {
+                } catch (InvalidRomanNumberException | UnexpectedResultException | InvalidInputException e) {
                     System.err.println(e.getMessage());
                 }
             }
