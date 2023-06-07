@@ -9,7 +9,7 @@ public class Main {
     public static void main(String[] args) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
             String input = reader.readLine();
-            CalcService c = new CalcService().setRestriction(100);
+            CalcService c = new CalcService().setRestriction(10);
             c.calculate(input);
         } catch (IOException e) {
             e.printStackTrace();
