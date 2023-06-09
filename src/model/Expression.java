@@ -5,8 +5,6 @@ import enums.NumberFormat;
 import exception.UnexpectedResultException;
 import service.RomeArabicConverter;
 
-import static enums.NumberFormat.ROMAN;
-
 public record Expression(int firstNum, int secondNum, ArithmeticOperation operation, NumberFormat format){
     public String execute(boolean calcAsInteger) {
         double result = switch (operation) {
@@ -20,14 +18,14 @@ public record Expression(int firstNum, int secondNum, ArithmeticOperation operat
     private String setResult(double d, boolean calcAsInteger) {
         return switch (format) {
             case ARABIC -> calcAsInteger ? String.valueOf((int) d) : String.valueOf(d);
-            case ROMAN -> RomeArabicConverter.convert((int) validate(d));
+            case ROMAN -> RomeArabicConverter.convert(tryCastToIntOverZero(d));
         };
     }
 
-    private double validate(double d) {
-        if (d < 1 || Math.rint(d) != d && format.equals(ROMAN)) {
+    private int tryCastToIntOverZero(double d) {
+        if (d < 1) {
             throw new UnexpectedResultException("Result in Roman format must be natural and greater than 0.");
-        } return d;
+        } return ((int) d);
     }
 
 }

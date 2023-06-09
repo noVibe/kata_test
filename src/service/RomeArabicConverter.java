@@ -70,7 +70,8 @@ public class RomeArabicConverter {
 
     private static int romeToArabic(String str) {
         return Arrays.stream(str.split("")).map(Num::get).reduce((x, y) -> x >= y ? x + y : y - x)
-                .filter(x -> str.equals(Num.get(x))).orElseThrow(InvalidRomanNumberException::new);
+                .filter(x -> str.equals(arabicToRome(x)))
+                .orElseThrow(() -> new InvalidRomanNumberException("Impossible Roman number: " + str));
     }
 
 }
