@@ -5,18 +5,10 @@ import exception.InvalidRomanNumberException;
 import exception.UnexpectedResultException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RomeArabicConverter {
     private final static class Num {
-        private static final Map<Integer, String> arToRom = new HashMap<>() {{
-            put(1, "I");
-            put(10, "X");
-            put(100, "C");
-            put(1000, "M");
-            put(5, "V");
-            put(50, "L");
-            put(500, "D");
-        }};
         private static final Map<String, Integer> romToAr = new HashMap<>() {{
             put("I", 1);
             put("X", 10);
@@ -26,6 +18,8 @@ public class RomeArabicConverter {
             put("L", 50);
             put("D", 500);
         }};
+        private static final Map<Integer, String> arToRom = romToAr.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey ));
 
         private static int get(String s) {
             return romToAr.get(s);
@@ -48,7 +42,7 @@ public class RomeArabicConverter {
         StringBuilder result = new StringBuilder();
         try {
             for (int i = 1, digit = number % 10; number > 0; i *= 10, number /= 10, digit = number % 10) {
-                result.insert(0,  switch (digit) {
+                result.insert(0, switch (digit) {
                     case 0, 1, 2, 3 -> Num.get(i).repeat(digit);
                     case 4, 9 -> Num.get(i) + Num.get(i * (1 + digit));
                     default -> Num.get(i * 5) + Num.get(i).repeat(digit - 5);
@@ -62,7 +56,6 @@ public class RomeArabicConverter {
             throw new UnexpectedResultException("Result is too big for Roman format.");
         }
     }
-
 
     private static int romeToArabic(String str) {
         return Arrays.stream(str.split("")).map(Num::get).reduce((x, y) -> x >= y ? x + y : y - x)
